@@ -4,10 +4,6 @@ What's included:
 - Django project `myvoting`
 - App `polls` with Candidate and Vote models
 - Templates + static files (includes candidate image at `static/images/candidate5.png`)
-- Endpoints:
-  - `/` : voting page
-  - `/vote/` : POST AJAX endpoint to cast vote
-  - `/status/` : JSON endpoint returning vote counts and session/user voted candidate
 
 Setup (run locally):
 1. Create virtualenv and install requirements:
