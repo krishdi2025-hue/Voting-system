@@ -1,0 +1,523 @@
+{% load static %}
+
+<!doctype html>
+<html lang="hi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>उमी मतदान यंत्र — मतदान पृष्ठ</title>
+  <style>
+    /* --- layout --- */
+    :root {
+      --accent: #3b3b7a;
+      --orange: #ff7a2f;
+      --green: #28a745;
+      --muted: #f5f5f5;
+      --card-bg: #fff8f0;
+    }
+
+    body {
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: #fafafa;
+      margin: 18px;
+      color: #222;
+    }
+
+    .wrapper {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+      overflow: hidden;
+      border: 1px solid #e6e6e6;
+    }
+
+    .header {
+      padding: 18px 20px;
+      text-align: center;
+      position: relative;
+      background: linear-gradient(180deg, #fff, #fff);
+    }
+
+    .title {
+      font-weight: 700;
+      font-size: 20px;
+      margin: 0 0 8px 0;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #111;
+      margin: 0 auto 12px auto;
+      max-width: 86%;
+      line-height: 1.25;
+      font-weight: 600;
+    }
+
+    /* blue underline accent (as in screenshot) */
+    .subtitle-accent {
+      display: inline-block;
+      position: relative;
+      padding-bottom: 6px;
+    }
+
+    .subtitle-accent::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 6px;
+      transform: translateY(6px);
+      z-index: -1;
+      opacity: .95;
+    }
+
+    /* share button */
+    .share-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .share-btn {
+      background: #19b54b;
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 2px 0 rgba(0, 0, 0, .08);
+    }
+
+    /* table-like list */
+    .list {
+      padding: 0 12px 12px 12px;
+    }
+
+    .table-headers {
+      display: grid;
+      grid-template-columns: 60px 1fr 80px 110px;
+      gap: 8px;
+      padding: 12px 8px;
+      background: #fff;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .table-headers .h-right {
+      justify-self: end;
+    }
+
+    /* rows */
+    .candidate-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 80px 110px;
+      gap: 8px;
+      align-items: center;
+      padding: 12px 8px;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fff;
+      position: relative;
+    }
+
+    .candidate-row .number {
+      font-weight: 800;
+      color: #222;
+      text-align: center;
+    }
+
+    .candidate-row .info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .candidate-row .info .name {
+      font-weight: 700;
+    }
+
+    .candidate-row .info .symbol {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .candidate-row .photo img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+    }
+
+    /* symbol column (small) */
+    .symbol-col img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      border-radius: 4px;
+      background: #fff;
+      padding: 6px;
+      border: 1px solid #eee;
+    }
+
+    /* vote area */
+    .vote-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .round-btn {
+      width: 46px;
+      height: 26px;
+      border-radius: 20px;
+      background: #ddd;
+      position: relative;
+      border: none;
+      cursor: pointer;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .round-knob {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      transition: all .14s;
+    }
+
+    .round-btn.active {
+      background: var(--accent);
+    }
+
+    .round-btn.active .round-knob {
+      left: 2px;
+      right: auto;
+      background: #fff;
+    }
+
+    .btn-label {
+      font-size: 12px;
+      margin-top: 6px;
+      color: #666;
+    }
+
+    /* selected row styling (orange block on left like screenshot) */
+    .candidate-row.selected {
+      background: var(--card-bg);
+      border-left: 6px solid var(--orange);
+    }
+
+    .candidate-row.selected .info .name {
+      color: #222;
+    }
+
+    .status-pill {
+      position: absolute;
+      right: 18px;
+      top: 14px;
+      background: var(--green);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+    }
+
+    .status-pill .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      opacity: .95;
+    }
+
+    /* results card */
+    .results {
+      margin-top: 14px;
+      padding: 12px;
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #eee
+    }
+
+    .results h4 {
+      margin: 0 0 10px 0;
+      font-size: 16px
+    }
+
+    /* responsive */
+    @media (max-width:540px) {
+
+      .table-headers,
+      .candidate-row {
+        grid-template-columns: 40px 1fr 64px 90px;
+      }
+
+      .photo img {
+        width: 48px;
+        height: 48px
+      }
+
+      .symbol-col img {
+        width: 44px;
+        height: 44px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <div class="header" style="padding:18px 20px;text-align:center;background:#fff;">
+        <div style="max-width:720px;margin:0 auto;">
+          <div style="font-weight:800;font-size:20px;color:#1b2b66;margin-bottom:6px;">
+            २८८ - शिर्डी विधानसभा सार्वत्रिक निवडणूक 2024
+          </div>
+
+          <div style="font-weight:900;font-size:26px;color:#d02a3a;line-height:1.05;margin-bottom:8px;">
+            उमी मतदान यंत्र
+          </div>
+
+          <div style="display:inline-block;position:relative;">
+            <div style="background:#3b3b7a;color:#fff;padding:8px 18px;border-radius:20px;font-weight:700;">
+              डेमो मतदानासाठी ऑटोरेखा चिन्हासमोरिल बटन दाबावे
+            </div>
+            <pre> </pre> 
+
+            <div class="subtitle subtitle-accent">
+          मतदानाच्या दिग्दर्शी सुध्दा <strong>ऑटोरेखा</strong> या चिन्हासमोरील बटन दाबून डॉ. पिपाडा
+          राजेंद्र मदनलाल यांना प्रचंड मतांनी विजयी करा !
+        </div>
+            
+          </div>
+
+          <div style="margin-top:12px;">
+            <button class="share-btn" onclick="alert('Share clicked — wire this to WhatsApp/share API')"
+              style="background:#19b54b;border:none;color:#fff;padding:8px 18px;border-radius:6px;font-weight:700;">
+              <img src="{% static 'images/whatsapp-icon.png' %}" alt=""
+                style="height:16px;vertical-align:middle;margin-right:8px" /> SHARE
+            </button>
+          </div>
+          <div style="
+    background:#ffcc33;
+    padding:12px 16px;
+    margin-top:10px;
+    border-radius:6px;
+    font-size:15px;
+    line-height:1.4;
+    font-weight:600;
+    color:#000;
+">
+    <span style="font-weight:800;">“ऑटोरेखा”</span>
+    या चिन्हासमोरिल बटन दाबून प्रचंड मतांनी विजयी करा.<br>
+    मतदान दिनांक २० नोव्हेंबर २०२४ सकाळी ७:०० ते सायं. ६:००
+</div>
+
+        </div>
+      </div>
+
+      <div class="list">
+        <!-- headers -->
+        <div class="table-headers" role="row">
+          <div>अ.क्र</div>
+          <div>उमेदवाराचे नाव</div>
+          <div>चिन्ह</div>
+          <div class="h-right">बटन</div>
+        </div>
+
+        <!-- candidates loop -->
+        {% for c in candidates %}
+        <div class="candidate-row {% if voted_candidate_id and voted_candidate_id == c.id %}selected{% endif %}"
+          data-candidate-id="{{ c.id }}">
+          <!-- number / serial -->
+          <div class="number">{{ c.number }}</div>
+
+          <!-- name + small portrait -->
+          <div class="info">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="photo">
+                <!-- use c.photo (if absolute path you uploaded, or static path) -->
+                {% comment %} <img src="{% static c.photo %}" alt="{{ c.name }}"> {% endcomment %}
+
+                <img src="{{ c.photo }}" alt="symbol for {{ c.name }}">
+              </div>
+              <div>
+                <div class="name">{{ c.name }}</div>
+                <div class="symbol">{{ c.symbol }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- symbol column (small thumbnail or election symbol) -->
+          <div class="symbol-col">
+            <!-- show symbol image if you have one, else show a small placeholder from c.photo -->
+            <img src="{{ c.photo }}" alt="symbol for {{ c.name }}">
+          </div>
+
+          <!-- vote button column -->
+          <div class="vote-area">
+            <button type="button" class="round-btn" aria-pressed="false" aria-disabled="false">
+              <div class="round-knob"></div>
+            </button>
+            <span class="btn-label">{% if voted_candidate_id and voted_candidate_id == c.id %}Vote received{% else %}बटन
+              दबाएँ{% endif %}</span>
+          </div>
+
+          <!-- selected pill -->
+          {% if voted_candidate_id and voted_candidate_id == c.id %}
+          <div class="status-pill"><span class="dot"></span> Your vote</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+
+    <div class="results">
+      <h4>Live Results</h4>
+      <div id="results-list"></div>
+      <div style="margin-top:8px;color:#666">Total votes: <span id="total-votes">0</span></div>
+    </div> 
+  </div>
+
+  <!-- fallback audio (keep or replace) -->
+  <audio id="vote-audio" src="/static/audio/vote-received.mp3" preload="auto"></audio>
+
+  <script>
+    // CSRF helper
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+    {% if voted_candidate_id %}
+    const initialVotedCandidateId = {{ voted_candidate_id }};
+    {% else %}
+    const initialVotedCandidateId = null;
+    {% endif %}
+
+
+    function disableAllButtons() {
+      document.querySelectorAll('.round-btn').forEach(b => {
+        b.setAttribute('aria-disabled', 'true'); b.disabled = true; b.style.pointerEvents = 'none';
+      });
+    }
+    function markSelectedCandidate(id) {
+      document.querySelectorAll('.candidate-row').forEach(r => {
+        r.classList.remove('selected');
+        const btn = r.querySelector('.round-btn'); if (btn) { btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); }
+      });
+      const chosen = document.querySelector('.candidate-row[data-candidate-id="' + id + '"]');
+      if (chosen) { chosen.classList.add('selected'); const btn = chosen.querySelector('.round-btn'); if (btn) { btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); } }
+    }
+
+    // setup initial state
+    document.addEventListener('DOMContentLoaded', () => {
+      if (initialVotedCandidateId) {
+        markSelectedCandidate(String(initialVotedCandidateId));
+        disableAllButtons();
+      }
+    });
+
+    // event listeners
+    document.querySelectorAll('.round-btn').forEach(btn => {
+      btn.addEventListener('click', async function () {
+        if (btn.getAttribute('aria-disabled') === 'true') {
+          const msg = new SpeechSynthesisUtterance('aap ne pehle hi vote de diya hai'); msg.lang = 'hi-IN';
+          if ('speechSynthesis' in window) window.speechSynthesis.speak(msg);
+          return;
+        }
+        if (btn.dataset.pending === '1') return;
+        btn.dataset.pending = '1';
+
+        const row = btn.closest('.candidate-row'); const candidateId = row.dataset.candidateId;
+        // optimistic
+        btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true');
+
+        try {
+          const form = new FormData();
+          form.append('candidate_id', candidateId);
+          const resp = await fetch("{% url 'polls:cast_vote' %}", {
+            method: 'POST',
+            body: form,
+            headers: { 'X-CSRFToken': csrftoken }
+          });
+          const data = await resp.json();
+          if (resp.ok && data.success) {
+            markSelectedCandidate(String(data.voted_candidate_id));
+            disableAllButtons();
+            // speak
+            if ('speechSynthesis' in window) {
+              const msg = new SpeechSynthesisUtterance('aap ka vote aa gaya'); msg.lang = 'hi-IN';
+              window.speechSynthesis.speak(msg);
+            } else { document.getElementById('vote-audio').play().catch(() => { }); }
+          } else {
+            if (data.voted_candidate_id) { markSelectedCandidate(String(data.voted_candidate_id)); disableAllButtons(); }
+            const message = data.message || 'Vote failed';
+            if ('speechSynthesis' in window) { const msg = new SpeechSynthesisUtterance(message); msg.lang = 'hi-IN'; window.speechSynthesis.speak(msg); }
+            else alert(message);
+            btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false');
+          }
+        } catch (e) {
+          console.error(e); alert('Network error'); btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false');
+        } finally { btn.dataset.pending = '0'; }
+      });
+    });
+
+    // polling for status (same logic as before)
+    async function fetchStatusAndRender() {
+      try {
+        const resp = await fetch("{% url 'polls:voting_status' %}");
+        const data = await resp.json();
+        if (!data.success) return;
+        const list = document.getElementById('results-list'); list.innerHTML = '';
+        const total = data.total_votes || 0; document.getElementById('total-votes').textContent = total;
+        data.counts.forEach(r => {
+          const percent = total ? Math.round((r.votes / total) * 100) : 0;
+          const chosen = String(data.voted_candidate_id) === String(r.candidate_id);
+          const el = document.createElement('div');
+          el.style.display = 'flex'; el.style.justifyContent = 'space-between'; el.style.padding = '6px 0';
+          el.innerHTML = `<div><strong>${r.number}. ${r.name}</strong><div style="font-size:12px;color:#666">${r.votes} votes · ${percent}%</div></div>${chosen ? '<div style="align-self:center"><span style="background:var(--green);color:#fff;padding:4px 8px;border-radius:12px;font-size:12px">Your vote</span></div>' : ''}`;
+          list.appendChild(el);
+        });
+
+        if (data.voted_candidate_id) { markSelectedCandidate(String(data.voted_candidate_id)); disableAllButtons(); }
+      } catch (e) { console.error('status fetch failed', e); }
+    }
+    fetchStatusAndRender();
+    setInterval(fetchStatusAndRender, 5000);
+  </script>
+</body>
+
+</html>
